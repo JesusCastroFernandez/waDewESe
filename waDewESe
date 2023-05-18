@@ -1,0 +1,55 @@
+from qiskit import QuantumCircuit, execute, Aer
+from qiskit.visualization import plot_histogram
+
+# Función para construir el oráculo balanceado
+def balanced_oracle(n):
+    oracle = QuantumCircuit(n+1)
+    for i in range(n):
+        oracle.cx(i, n)
+    return oracle
+
+# Función para construir el oráculo constante
+def constant_oracle(n):
+    oracle = QuantumCircuit(n+1)
+    return oracle
+
+# Algoritmo de Deutsch-Josza mejorado
+def deutsch_josza_algorithm(oracle):
+    n = oracle.num_qubits - 1
+
+    circuit = QuantumCircuit(n+1, n)
+    
+    # Preparación de los qubits en superposición
+    circuit.h(range(n+1))
+    
+    # Aplicación del oráculo
+    circuit += oracle
+    
+    # Interferencia
+    circuit.h(range(n))
+    
+    # Medición
+    circuit.measure(range(n), range(n))
+    
+    return circuit
+
+# Ejecución del algoritmo con el oráculo constante (ejemplo)
+circuit_constant = deutsch_josza_algorithm(constant_oracle(2))
+
+backend = Aer.get_backend('qasm_simulator')
+job = execute(circuit_constant, backend, shots=1)
+result = job.result()
+counts = result.get_counts()
+
+print("Resultados para el oráculo constante:")
+plot_histogram(counts)
+
+# Ejecución del algoritmo con el oráculo balanceado (ejemplo)
+circuit_balanced = deutsch_josza_algorithm(balanced_oracle(2))
+
+job = execute(circuit_balanced, backend, shots=1)
+result = job.result()
+counts = result.get_counts()
+
+print("Resultados para el oráculo balanceado:")
+plot_histogram(counts)
